@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:coco/SecondPage.dart';
+import 'package:coco/ThreedPage.dart';
+import 'package:coco/FourPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,84 +14,84 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Money Guard'),
-        ),
-        body: HomePage(),
-        bottomNavigationBar: BottomAppBar(
-          child: BottomNavigationBar(
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: '홈',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.save),
-                label: '보관함',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.more_horiz),
-                label: '더보기',
-              ),
-            ],
-          ),
-        ),
-      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomePage(),
+        '/second': (context) => SecondPage(),
+        '/threed': (context) => ThreedPage(),
+        '/four': (context) => FourPage(),
+      },
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          BannerWidget(),
-          SizedBox(height: 20),
-          ServiceButton(
-            icon: Icons.edit,
-            title: '차용증 작성하기',
-            description: '안전하고 간편한 전자 차용증작성 서비스',
-            onTap: () {
-              // Navigate to the relevant page
-            },
-          ),
-          ServiceButton(
-            icon: Icons.assignment,
-            title: '채권 판매',
-            description: '급하게 돈이 필요할 때 빌려준 돈을 활용해요',
-            onTap: () {
-              // Navigate to the relevant page
-            },
-          ),
-          Spacer(),
-        ],
-      ),
-    );
-  }
+  _HomePageState createState() => _HomePageState();
 }
 
-class BannerWidget extends StatelessWidget {
+class _HomePageState extends State<HomePage> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.0),
-      color: Colors.orange,
-      child: Row(
-        children: [
-          Icon(Icons.file_copy, color: Colors.white),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '어떤 약속도 안심하세요! 쉽고 편리한 후불약정서 작성하기',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('머니실드'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            SizedBox(height: 20),
+            ServiceButton(
+              icon: Icons.edit,
+              title: '차용증 작성하기',
+              description: '안전하고 간편한 차용증 작성',
+              onTap: () {
+                Navigator.pushNamed(context, '/threed');
+              },
             ),
-          ),
-        ],
+            ServiceButton(
+              icon: Icons.assignment,
+              title: '차용증 판매하기',
+              description: '급전이 필요할 때 빌려준 돈을 활용해요',
+              onTap: () {
+                Navigator.pushNamed(context, '/four');
+              },
+            ),
+            Spacer(),
+            TableCalendar(
+              firstDay: DateTime.utc(2010, 10, 16),
+              lastDay: DateTime.utc(2030, 3, 14),
+              focusedDay: _focusedDay,
+              calendarFormat: _calendarFormat,
+              selectedDayPredicate: (day) {
+                return isSameDay(_selectedDay, day);
+              },
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay; // update `_focusedDay` here as well
+                });
+              },
+              onFormatChanged: (format) {
+                if (_calendarFormat != format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                }
+              },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
+            ),
+          ],
+        ),
       ),
+      bottomNavigationBar: BottomNavBar(),
     );
   }
 }
@@ -98,7 +102,12 @@ class ServiceButton extends StatelessWidget {
   final String description;
   final VoidCallback onTap;
 
-  ServiceButton({required this.icon, required this.title, required this.description, required this.onTap});
+  const ServiceButton({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -127,4 +136,42 @@ class ServiceButton extends StatelessWidget {
   }
 }
 
-
+class BottomNavBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BottomAppBar(
+      child: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: '홈',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.save),
+            label: '보관함',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.trending_flat),
+            label: '거래소',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+            // Home button action
+              Navigator.pushNamed(context, '/');
+              break;
+            case 1:
+            // Navigate to SecondPage when "보관함" is clicked
+              Navigator.pushNamed(context, '/second');
+              break;
+            case 2:
+            // Exchange button action
+            // Handle exchange button action
+              break;
+          }
+        },
+      ),
+    );
+  }
+}
